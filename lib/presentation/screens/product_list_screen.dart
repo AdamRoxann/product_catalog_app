@@ -17,6 +17,9 @@ class ProductListScreen extends ConsumerStatefulWidget {
 class _ProductListScreenState
     extends ConsumerState<ProductListScreen> {
   late final ScrollController _scrollController;
+  late final TextEditingController _searchController;
+  Timer? _searchDebounce;
+  
 
   @override
   void initState() {
@@ -24,6 +27,8 @@ class _ProductListScreenState
 
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
+
+    _searchController = TextEditingController();
   }
 
   void _onScroll() {
@@ -38,10 +43,24 @@ class _ProductListScreenState
     }
   }
 
+  void _onSearchChanged(String query) {
+    _searchDebounce?.cancel();
+
+    _searchDebounce = Timer(
+      const Duration(milliseconds: 500),
+      () {
+        ref.read(productProvider.notifier).search(query);
+      },
+    );
+  }
+
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+
+    _searchDebounce?.cancel();
+    _searchController.dispose();
 
     super.dispose();
   }
@@ -63,6 +82,8 @@ class _ProductListScreenState
               12,
             ),
             child: TextField(
+              controller: _searchController,
+              onChanged: _onSearchChanged,
               decoration: const InputDecoration(
                 hintText: 'Search products...',
                 prefixIcon: Icon(Icons.search),
