@@ -120,29 +120,34 @@ class _ProductListScreenState
             );
           }
 
-          return ListView.builder(
-            controller: _scrollController,
-            itemCount: state.products.length +
-                (state.isLoadingMore ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index >= state.products.length) {
-                return const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              }
-
-              final product = state.products[index];
-
-              return ProductCard(
-                product: product,
-                onTap: () {
-                  context.push('/product/${product.id}');
-                },
-              );
+          return RefreshIndicator(
+            onRefresh: () {
+              return ref.read(productProvider.notifier).refresh();
             },
+            child: ListView.builder(
+              controller: _scrollController,
+              itemCount: state.products.length +
+                  (state.isLoadingMore ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index >= state.products.length) {
+                  return const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+            
+                final product = state.products[index];
+            
+                return ProductCard(
+                  product: product,
+                  onTap: () {
+                    context.push('/product/${product.id}');
+                  },
+                );
+              },
+            ),
           );
         },
       ),

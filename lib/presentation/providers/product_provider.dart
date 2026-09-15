@@ -154,4 +154,31 @@ class ProductNotifier extends AsyncNotifier<ProductState> {
       );
     });
   }
+
+  Future<void> refresh() async {
+    final currentState = state.value;
+    final query = currentState?.query ?? '';
+
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() async {
+      final response = query.isEmpty
+          ? await repository.getProducts(
+              limit: pageSize,
+              skip: 0,
+            )
+          : await repository.searchProducts(
+              query: query,
+              limit: pageSize,
+              skip: 0,
+            );
+
+      return ProductState(
+        products: response.products,
+        total: response.total,
+        query: query,
+        hasMore: response.products.length < response.total,
+      );
+    });
+  }
 }
