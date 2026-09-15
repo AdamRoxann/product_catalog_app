@@ -16,6 +16,35 @@ class ProductListScreen extends ConsumerStatefulWidget {
 
 class _ProductListScreenState
     extends ConsumerState<ProductListScreen> {
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) {
+      return;
+    }
+
+    final position = _scrollController.position;
+
+    if (position.pixels >= position.maxScrollExtent - 300) {
+      ref.read(productProvider.notifier).loadMore();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +100,7 @@ class _ProductListScreenState
           }
 
           return ListView.builder(
+            controller: _scrollController,
             itemCount: state.products.length +
                 (state.isLoadingMore ? 1 : 0),
             itemBuilder: (context, index) {
