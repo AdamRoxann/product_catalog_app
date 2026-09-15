@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:product_catalog/presentation/screens/product_list_screen.dart';
+import 'package:product_catalog/router/app_router.dart';
 
 void main() {
   runApp(const ProductCatalogApp());
@@ -11,13 +12,13 @@ class ProductCatalogApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'Product Catalog',
       theme: ThemeData(
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const ProductListScreen(),
+      routerConfig: appRouter,
     );
   }
 }
