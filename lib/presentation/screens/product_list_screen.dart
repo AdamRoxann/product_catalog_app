@@ -1,20 +1,99 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 
-class ProductListScreen extends StatefulWidget {
-  const new({super.key});
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:product_catalog/presentation/providers/product_provider.dart';
+import 'package:product_catalog/presentation/widgets/product_card.dart';
+
+class ProductListScreen extends ConsumerStatefulWidget {
+  const ProductListScreen({super.key});
 
   @override
-  State<ProductListScreen> createState() => _ProductListScreenState();
+  ConsumerState<ProductListScreen> createState() =>
+      _ProductListScreenState();
 }
 
-class _ProductListScreenState extends State<ProductListScreen> {
+class _ProductListScreenState
+    extends ConsumerState<ProductListScreen> {
+
   @override
   Widget build(BuildContext context) {
+    final productState = ref.watch(productProvider);
+
     return Scaffold(
-      body: Container(
-        child: Center(
-          child: Text("Product List Screen"),
+      appBar: AppBar(
+        title: const Text('Product Catalog'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(64),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              16,
+              0,
+              16,
+              12,
+            ),
+            child: TextField(
+              decoration: const InputDecoration(
+                hintText: 'Search products...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+                filled: true,
+              ),
+            ),
+          ),
         ),
+      ),
+      body: productState.when(
+        loading: () => const Center(
+          child: CircularProgressIndicator(),
+        ),
+        error: (error, stackTrace) => Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Something went wrong'),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: () {
+                  ref.invalidate(productProvider);
+                },
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+        data: (state) {
+          if (state.products.isEmpty) {
+            return const Center(
+              child: Text('No products found'),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: state.products.length +
+                (state.isLoadingMore ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index >= state.products.length) {
+                return const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+
+              final product = state.products[index];
+
+              return ProductCard(
+                product: product,
+                onTap: () {
+                  context.push('/product/${product.id}');
+                },
+              );
+            },
+          );
+        },
       ),
     );
   }
